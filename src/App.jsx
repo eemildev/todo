@@ -1,10 +1,14 @@
 import { useState, useEffect } from 'react'
 import './App.css'
-import axios, {isCancel, AxiosError} from 'axios';
-const url = "http://localhost:3001"
+import axios from 'axios';
+import { useUser } from './context/useUser'
+import Row from './components/row'
+const url = import.meta.env.VITE_API_URL || "http://localhost:3001"
+
 function App() {
   const [task, setTask] = useState("")
   const [tasks, setTasks] = useState([])
+  const { user } = useUser()
 
   useEffect(() => {
   axios.get(url)
@@ -18,8 +22,8 @@ function App() {
 
   const addTask = () => {
     const newTask = { description: task }
-
-    axios.post(url + "/create", {task: newTask})
+    const headers = { headers: { Authorization: user.token } }
+    axios.post(url + "/create", {task: newTask}, headers)
      .then(response => {
         setTasks([...tasks,response.data])
         setTask('')
@@ -27,10 +31,11 @@ function App() {
     .catch(error => {
       alert(error.response ? error.response.data.error.message : error)
     })
-}
+  }
   
   const deleteTask = (deleted) => {
-    axios.delete(url + "/delete/" + deleted)
+    const headers = { headers: { Authorization: user.token } }
+    axios.delete(url + "/delete/" + deleted, headers)
     .then(response => {
       setTasks(tasks.filter(item => item.id !== deleted))
     })
